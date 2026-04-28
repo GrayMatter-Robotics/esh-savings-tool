@@ -1,5 +1,6 @@
 """FastAPI route handlers for upload, compute, report, and excel endpoints."""
 import io
+import os
 import tempfile
 import uuid
 from pathlib import Path
@@ -46,6 +47,8 @@ async def compute_endpoint(body: dict):
     session = load_session(_sessions[session_id])
     result  = Pipeline(config, se_inputs, adapter).run(session)
     _results[session_id] = result
+    tmp_path = _sessions.pop(session_id)  # remove from session store
+    os.unlink(tmp_path)                    # delete temp file
     return result_to_dict(result)
 
 
@@ -53,7 +56,7 @@ async def compute_endpoint(body: dict):
 async def get_report(session_id: str):
     if session_id not in _results:
         raise HTTPException(status_code=404, detail="Result not found. Run /compute first.")
-    return _results[session_id]
+    return result_to_dict(_results[session_id])
 
 
 @router.get("/excel/{session_id}")

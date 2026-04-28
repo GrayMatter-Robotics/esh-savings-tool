@@ -3,6 +3,16 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from esh_savings.api.app import app
+from esh_savings.api.routes import compute as compute_module
+
+
+@pytest.fixture(autouse=True)
+def _clear_api_state():
+    compute_module._sessions.clear()
+    compute_module._results.clear()
+    yield
+    compute_module._sessions.clear()
+    compute_module._results.clear()
 
 
 client = TestClient(app)
@@ -61,4 +71,14 @@ def test_excel_download_returns_xlsx(sample_hdf5_path):
 
 def test_compute_unknown_session_returns_404():
     r = client.post("/compute", json={"session_id": "nonexistent", "se_inputs": {"operator_count": 1}})
+    assert r.status_code == 404
+
+
+def test_report_unknown_session_returns_404():
+    r = client.get("/report/nonexistent")
+    assert r.status_code == 404
+
+
+def test_excel_unknown_session_returns_404():
+    r = client.get("/excel/nonexistent")
     assert r.status_code == 404
