@@ -50,3 +50,29 @@ def test_compliance_status_defaults_safe():
     c = ComplianceStatus()
     assert c.a8_exceeds_eav is False
     assert c.regulatory_cost_annual_usd == 0.0
+
+
+def test_risk_scores_requires_compliance_status():
+    with pytest.raises(Exception):
+        RiskScores()  # compliance_status has no default — must be supplied
+
+
+def test_cost_calibration_rejects_invalid_source():
+    from esh_savings.models.calibration_result import CostCalibration
+    with pytest.raises(Exception):
+        CostCalibration(
+            cost_per_claim_usd=50000.0,
+            calibration_source="invalid",  # not in Literal["customer","blend","benchmark"]
+            emr_savings_annual_usd=1000.0,
+            absenteeism_cost_annual_usd=500.0,
+            exposure_history_mismatch=False,
+        )
+    # valid source should work
+    c = CostCalibration(
+        cost_per_claim_usd=50000.0,
+        calibration_source="benchmark",
+        emr_savings_annual_usd=1000.0,
+        absenteeism_cost_annual_usd=500.0,
+        exposure_history_mismatch=False,
+    )
+    assert c.calibration_source == "benchmark"

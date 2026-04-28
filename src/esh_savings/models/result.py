@@ -28,7 +28,7 @@ class ESHResult(BaseModel):
     y5_cost_manual: float;  y5_cost_robot: float
 
     compliance_status:           ComplianceStatus
-    havs_onset_estimate:         float | None
+    havs_onset_estimate:         float | None = None
     payback_contribution_years:  float = 0.0   # Phase 2 — robot system cost not tracked yet
 
     provenance_map: dict[str, ProvenanceTag]
