@@ -7,9 +7,9 @@ Sources:
 """
 
 # NCCI Annual Statistical Bulletin 2022-23
-DIRECT_CLAIM_COST_USD: float = 55_115.0   # USD [V] secondary benchmark only
-INDIRECT_MULTIPLIER: float = 1.1           # [V] OSHA Safety Pays
-TOTAL_CLAIM_COST_USD: float = 115_000.0   # USD [V] published round figure
+DIRECT_CLAIM_COST_USD: float = 55_115.0   # USD [V] NCCI 2022-23; direct WC cost per MSD claim
+INDIRECT_MULTIPLIER: float = 1.1           # [D] OSHA Safety Pays range 1.1–4.5×; conservative floor — not applied to TOTAL_CLAIM_COST_USD
+TOTAL_CLAIM_COST_USD: float = 115_000.0   # USD [V] NCCI all-in cost (direct + indirect combined); use this for savings calculations
 
 # BLS SOII 2022 — manufacturing sector
 MANUAL_MSD_IR: float = 41.0     # injuries per 10,000 FTE [D] replaced by SE actuals when available

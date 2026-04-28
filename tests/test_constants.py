@@ -25,3 +25,23 @@ def test_robot_ir_below_manual():
 def test_osha_probabilities_are_fractions():
     assert 0 < OSHA_INSPECTION_PROB < 1
     assert 0 < OSHA_CITATION_PROB < 1
+
+
+def test_ergonomics_constants_are_positive():
+    from esh_savings.constants.ergonomics import (
+        ISO_INITIAL_PUSH_N, ISO_SUSTAINED_PUSH_N,
+        OCRA_VIBRATION_MULTIPLIER, STRAIN_INDEX_HAZARD,
+    )
+    assert ISO_INITIAL_PUSH_N == 250.0
+    assert ISO_SUSTAINED_PUSH_N == 150.0
+    assert 0 < OCRA_VIBRATION_MULTIPLIER < 1
+    assert STRAIN_INDEX_HAZARD == 7.0
+
+
+def test_osha_penalty_schedule():
+    from esh_savings.constants.regulatory import (
+        OSHA_SERIOUS_MAX_USD, OSHA_WILLFUL_MAX_USD, OSHA_EXPECTED_PENALTY_USD,
+    )
+    assert OSHA_SERIOUS_MAX_USD == 16_550.0
+    assert OSHA_WILLFUL_MAX_USD == 165_514.0
+    assert OSHA_EXPECTED_PENALTY_USD < OSHA_SERIOUS_MAX_USD  # expected penalty is below max
