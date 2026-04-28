@@ -4,7 +4,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from esh_savings.models.session import SandingSession, SessionMetadata
+from esh_savings.models.session import SandingSession
 from esh_savings.pipeline.ingestion.config import IngestionConfig
 
 
@@ -19,7 +19,11 @@ def read_hdf5(path: Path, config: IngestionConfig | None = None) -> SandingSessi
         if cfg.hdf5_torque_xyz in f:
             torque_xyz = f[cfg.hdf5_torque_xyz][:]
         else:
-            warnings.warn(f"Dataset '{cfg.hdf5_torque_xyz}' not found; filling with zeros")
+            warnings.warn(
+                f"Dataset '{cfg.hdf5_torque_xyz}' not found; filling with zeros",
+                UserWarning,
+                stacklevel=2,
+            )
             torque_xyz = np.zeros_like(force_xyz)
 
         position_xyz = f[cfg.hdf5_position_xyz][:] if cfg.hdf5_position_xyz in f else None
