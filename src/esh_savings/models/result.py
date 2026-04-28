@@ -29,6 +29,7 @@ class ESHResult(BaseModel):
 
     compliance_status:           ComplianceStatus
     havs_onset_estimate:         float | None = None
+    a8_vs_eav:                   float | None = None   # A(8)/EAV ratio from RiskScores
     payback_contribution_years:  float = 0.0   # Phase 2 — robot system cost not tracked yet
 
     provenance_map: dict[str, ProvenanceTag]

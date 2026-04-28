@@ -93,5 +93,6 @@ def compute_savings(
         y5_cost_robot=_projected(annual_cost_robot, 5),
         compliance_status=scores.compliance_status,
         havs_onset_estimate=scores.havs_onset_years,
+        a8_vs_eav=scores.a8_vs_eav,
         provenance_map=provenance,
     )
