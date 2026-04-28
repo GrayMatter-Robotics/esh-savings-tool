@@ -32,6 +32,7 @@ def _esh_composite(
 
 
 def _projected(base: float, year: int) -> float:
+    assert year >= 1, f"year must be >= 1, got {year}"
     return base * ((1.0 + WAGE_INFLATION_RATE) ** year)
 
 
@@ -57,8 +58,20 @@ def compute_savings(
     provenance: dict[str, ProvenanceTag] = {
         "esh_risk_score_manual":     ProvenanceTag.COMPUTED,
         "esh_risk_score_robot":      ProvenanceTag.COMPUTED,
+        "risk_reduction_pct":        ProvenanceTag.COMPUTED,
         "annual_injury_cost_manual": ProvenanceTag.DEFAULT,
         "annual_injury_cost_robot":  ProvenanceTag.ESTIMATED,
+        "annual_esh_savings_usd":    ProvenanceTag.COMPUTED,
+        "y1_cost_manual":            ProvenanceTag.COMPUTED,
+        "y1_cost_robot":             ProvenanceTag.COMPUTED,
+        "y2_cost_manual":            ProvenanceTag.COMPUTED,
+        "y2_cost_robot":             ProvenanceTag.COMPUTED,
+        "y3_cost_manual":            ProvenanceTag.COMPUTED,
+        "y3_cost_robot":             ProvenanceTag.COMPUTED,
+        "y4_cost_manual":            ProvenanceTag.COMPUTED,
+        "y4_cost_robot":             ProvenanceTag.COMPUTED,
+        "y5_cost_manual":            ProvenanceTag.COMPUTED,
+        "y5_cost_robot":             ProvenanceTag.COMPUTED,
     }
 
     return ESHResult(

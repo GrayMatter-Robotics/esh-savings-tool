@@ -83,3 +83,15 @@ def test_single_channel_renormalizes_score():
     result = compute_savings(scores, SEProvidedInputs(operator_count=1), cfg)
     # Only vibration: (40 × 80) / 40 = 80
     assert result.esh_risk_score_manual == pytest.approx(80.0)
+
+
+def test_zero_risk_manual_produces_zero_reduction():
+    scores = RiskScores(
+        vibration_score=None,
+        force_score=None,
+        compliance_status=ComplianceStatus(),
+    )
+    cfg = AnalysisConfig(include_vibration=False, include_force=False, include_orientation=False)
+    result = compute_savings(scores, SEProvidedInputs(operator_count=1), cfg)
+    assert result.esh_risk_score_manual == pytest.approx(0.0)
+    assert result.risk_reduction_pct == pytest.approx(0.0)
