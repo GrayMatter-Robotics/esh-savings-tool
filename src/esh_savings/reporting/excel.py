@@ -17,6 +17,7 @@ from esh_savings.constants.economics import (
     TOTAL_CLAIM_COST_USD,
     WAGE_INFLATION_RATE,
     ROBOT_LOAD_UNLOAD_FRACTION,
+    FBLR_DEFAULT_USD,
 )
 from esh_savings.constants.vibration import (
     SHIFT_DURATION_S,
@@ -167,13 +168,14 @@ def _write_assumptions(ws, wb, result: ESHResult) -> None:
     _header_row(ws, 2, ["Parameter", "Value", "Source"])
 
     assumption_rows = [
-        ("Shift duration (s)",              SHIFT_DURATION_S,             "ISO/vibration.py"),
+        ("Shift duration (s)",              SHIFT_DURATION_S,             "ISO/vibration.py"),   # row 3 → SHIFT_DURATION_S
+        ("Wage inflation rate",             WAGE_INFLATION_RATE,          "Default"),             # row 4 → WAGE_INFLATION_RATE
+        ("Fully burdened labor rate (USD/hr)", FBLR_DEFAULT_USD,         "Default"),             # row 5 → FBLR_USD
         ("HAV EAV (m/s²)",                  HAV_EAV,                      "ISO 5349-1"),
         ("HAV ELV (m/s²)",                  HAV_ELV,                      "ISO 5349-1"),
         ("Manual MSD IR (per 10k FTE)",     MANUAL_MSD_IR,                "BLS SOII 2022"),
         ("Robot MSD IR (per 10k FTE)",      ROBOT_MSD_IR,                 "Midpoint estimate"),
         ("Total claim cost (USD)",          TOTAL_CLAIM_COST_USD,         "NCCI 2022-23"),
-        ("Wage inflation rate",             WAGE_INFLATION_RATE,          "Default"),
         ("Robot load/unload fraction",      ROBOT_LOAD_UNLOAD_FRACTION,   "Default"),
     ]
 
