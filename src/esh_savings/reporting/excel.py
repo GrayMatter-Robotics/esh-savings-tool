@@ -8,7 +8,7 @@ Produces a three-sheet workbook:
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.utils import get_column_letter
+from openpyxl.workbook.defined_name import DefinedName
 
 from esh_savings.models.result import ESHResult
 from esh_savings.constants.economics import (
@@ -108,6 +108,8 @@ def _write_summary(ws, result: ESHResult) -> None:
     ws.cell(row=cum_row, column=1, value="5-Year Cumulative Savings (USD)").font = _LABEL_FONT
     ws.cell(row=cum_row, column=2, value=cumulative).font = Font(bold=True, size=10)
 
+    ws.protection.sheet = True
+
 
 def _write_exposure(ws, result: ESHResult) -> None:
     ws.title = "Exposure"
@@ -125,10 +127,10 @@ def _write_exposure(ws, result: ESHResult) -> None:
         ("--- Vibration ---",               "",           None,                        ""),
         ("A(8)/EAV ratio",                  "COMPUTED",   result.a8_vs_eav,            "ratio"),
         ("HAVS onset estimate",             "COMPUTED",   result.havs_onset_estimate,  "years"),
-        ("A(8) exceeds EAV?",               "COMPUTED",   float(result.compliance_status.a8_exceeds_eav), "bool"),
-        ("A(8) exceeds ELV?",               "COMPUTED",   float(result.compliance_status.a8_exceeds_elv), "bool"),
+        ("A(8) exceeds EAV?",               "COMPUTED",   "YES" if result.compliance_status.a8_exceeds_eav else "NO", "bool"),
+        ("A(8) exceeds ELV?",               "COMPUTED",   "YES" if result.compliance_status.a8_exceeds_elv else "NO", "bool"),
         ("--- Force / Strain Index ---",    "",           None,                        ""),
-        ("SI hazardous?",                   "COMPUTED",   float(result.compliance_status.si_hazardous),   "bool"),
+        ("SI hazardous?",                   "COMPUTED",   "YES" if result.compliance_status.si_hazardous else "NO",   "bool"),
         ("Regulatory cost (annual USD)",    "COMPUTED",   result.compliance_status.regulatory_cost_annual_usd, "USD/yr"),
     ]
 
@@ -152,15 +154,17 @@ def _write_exposure(ws, result: ESHResult) -> None:
             for col in range(1, 5):
                 ws.cell(row=i, column=col).fill = fill
 
+    ws.protection.sheet = True
 
-def _write_assumptions(ws, result: ESHResult) -> None:
+
+def _write_assumptions(ws, wb, result: ESHResult) -> None:
     ws.title = "Assumptions"
     _set_col_widths(ws, {"A": 36, "B": 18, "C": 10})
 
     ws["A1"] = "Baked-in Assumptions"
-    ws["A1"].font = _TITLE_FONT
+    ws["A1"].font = Font(bold=True, size=13, color="1F4E79")
 
-    _header_row(ws, 1, ["Parameter", "Value", "Source"])
+    _header_row(ws, 2, ["Parameter", "Value", "Source"])
 
     assumption_rows = [
         ("Shift duration (s)",              SHIFT_DURATION_S,             "ISO/vibration.py"),
@@ -173,13 +177,21 @@ def _write_assumptions(ws, result: ESHResult) -> None:
         ("Robot load/unload fraction",      ROBOT_LOAD_UNLOAD_FRACTION,   "Default"),
     ]
 
-    for i, (label, value, source) in enumerate(assumption_rows, start=2):
+    for i, (label, value, source) in enumerate(assumption_rows, start=3):
         fill = _ALT_FILL if i % 2 == 0 else None
         for col, val in enumerate([label, value, source], start=1):
             cell = ws.cell(row=i, column=col, value=val)
             cell.font = _NORMAL_FONT
             if fill:
                 cell.fill = fill
+
+    named = {
+        "SHIFT_DURATION_S":    "Assumptions!$B$3",
+        "WAGE_INFLATION_RATE": "Assumptions!$B$4",
+        "FBLR_USD":            "Assumptions!$B$5",
+    }
+    for name, ref in named.items():
+        wb.defined_names[name] = DefinedName(name, attr_text=ref)
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +210,7 @@ def result_to_excel(result: ESHResult) -> bytes:
     _write_exposure(ws_exposure, result)
 
     ws_assumptions = wb.create_sheet()
-    _write_assumptions(ws_assumptions, result)
+    _write_assumptions(ws_assumptions, wb, result)
 
     buf = io.BytesIO()
     wb.save(buf)

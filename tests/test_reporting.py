@@ -65,6 +65,6 @@ def test_excel_assumptions_has_shift_duration(computed_result):
     wb_bytes = result_to_excel(computed_result)
     wb = openpyxl.load_workbook(io.BytesIO(wb_bytes))
     ws = wb["Assumptions"]
-    # Row 2 col A should label "Shift duration (s)"
-    assert "shift" in str(ws["A2"].value).lower()
-    assert ws["B2"].value == 28_800.0
+    # Row 3 col A should label "Shift duration (s)"
+    assert "shift" in str(ws["A3"].value).lower()
+    assert ws["B3"].value == 28_800.0
