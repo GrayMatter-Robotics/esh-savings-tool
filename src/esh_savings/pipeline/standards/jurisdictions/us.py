@@ -1,3 +1,5 @@
+"""US jurisdiction adapter — ISO 5349-1:2001 (HAV) and OSHA regulatory cost."""
+
 from esh_savings.models.features import ExposureFeatures
 from esh_savings.constants.vibration import HAV_EAV, HAV_ELV
 from esh_savings.constants.regulatory import (

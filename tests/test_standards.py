@@ -2,9 +2,11 @@ import pytest
 from esh_savings.models.features import ExposureFeatures, SIFactors
 from esh_savings.models.scores import RiskScores
 from esh_savings.pipeline.standards.evaluator import evaluate
+from esh_savings.pipeline.standards.jurisdictions import get_adapter
 from esh_savings.pipeline.standards.jurisdictions.us import USAdapter
 from esh_savings.constants.vibration import HAV_EAV, HAV_ELV
 from esh_savings.constants.ergonomics import STRAIN_INDEX_HAZARD
+from esh_savings.constants.regulatory import OSHA_INSPECTION_PROB, OSHA_CITATION_PROB, OSHA_EXPECTED_PENALTY_USD
 
 
 def _adapter():
@@ -70,3 +72,29 @@ def test_no_features_returns_none_scores():
     scores = evaluate(features, _adapter())
     assert scores.vibration_score is None
     assert scores.force_score is None
+
+
+# --- get_adapter() tests ---
+
+def test_get_adapter_returns_us():
+    adapter = get_adapter("US")
+    assert adapter.name == "US"
+
+
+def test_get_adapter_case_insensitive():
+    adapter = get_adapter("us")
+    assert adapter.name == "US"
+
+
+def test_get_adapter_unknown_raises():
+    with pytest.raises(ValueError, match="Unknown jurisdiction"):
+        get_adapter("EU")
+
+
+# --- regulatory_cost_annual_usd test ---
+
+def test_regulatory_cost_present_when_features_populated():
+    features = ExposureFeatures(a8=HAV_EAV)
+    scores = evaluate(features, _adapter())
+    expected = OSHA_INSPECTION_PROB * OSHA_CITATION_PROB * OSHA_EXPECTED_PENALTY_USD
+    assert scores.compliance_status.regulatory_cost_annual_usd == pytest.approx(expected)

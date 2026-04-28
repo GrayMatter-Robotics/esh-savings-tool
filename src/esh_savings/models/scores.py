@@ -16,8 +16,9 @@ class RiskScores(BaseModel):
     havs_onset_years: float | None = None   # years to 10% HAVS prevalence
 
     # Force — None when include_force = False
-    force_score: float | None = None   # 0–100
-    si_score:    float | None = None   # product of 6 SI factors
+    force_score:   float | None = None   # 0–100
+    si_score:      float | None = None   # product of 6 SI factors
+    si_vs_hazard:  float | None = None   # SI / STRAIN_INDEX_HAZARD (uncapped ratio)
 
     # Posture — None in Phase 1 (no orientation); Phase 3 will populate
     rula_score: float | None = None   # 0–100

@@ -1,11 +1,13 @@
+"""Stage 3: apply jurisdiction thresholds to exposure features → risk scores."""
+
 from esh_savings.models.features import ExposureFeatures
 from esh_savings.models.scores import RiskScores, ComplianceStatus
 from esh_savings.constants.vibration import HAVS_ONSET_COEFF, HAVS_ONSET_EXP
 from esh_savings.constants.ergonomics import STRAIN_INDEX_HAZARD
+from esh_savings.pipeline.standards.jurisdictions import JurisdictionAdapter
 
 
-def evaluate(features: ExposureFeatures, adapter) -> RiskScores:
-    """Stage 3: apply jurisdiction thresholds to exposure features → risk scores."""
+def evaluate(features: ExposureFeatures, adapter: JurisdictionAdapter) -> RiskScores:
 
     # --- Vibration ---
     vibration_score = a8_vs_eav = a8_vs_elv = havs_onset = None
@@ -19,11 +21,12 @@ def evaluate(features: ExposureFeatures, adapter) -> RiskScores:
             havs_onset = HAVS_ONSET_COEFF * (features.a8 ** HAVS_ONSET_EXP)
 
     # --- Force / Strain Index ---
-    force_score = si_score = None
+    force_score = si_score = si_vs_hazard = None
     if features.si_factors is not None:
         f = features.si_factors
         si_score = f.im * f.du * f.em * f.hwp * f.sw * f.dd
-        force_score = min(100.0, (si_score / STRAIN_INDEX_HAZARD) * 100.0)
+        si_vs_hazard = si_score / STRAIN_INDEX_HAZARD
+        force_score = min(100.0, si_vs_hazard * 100.0)
 
     # --- Compliance ---
     flags = adapter.compliance_flags(features)
@@ -41,6 +44,7 @@ def evaluate(features: ExposureFeatures, adapter) -> RiskScores:
         havs_onset_years=havs_onset,
         force_score=force_score,
         si_score=si_score,
+        si_vs_hazard=si_vs_hazard,
         rula_score=None,   # Phase 3
         compliance_status=compliance,
     )
