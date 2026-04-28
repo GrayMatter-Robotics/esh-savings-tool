@@ -521,7 +521,6 @@ esh-savings/
 ├── src/
 │   └── esh_savings/
 │       ├── __init__.py
-│       ├── pipeline.py                  # Pipeline orchestrator
 │       ├── models/
 │       │   ├── session.py               # SandingSession, SessionMetadata
 │       │   ├── features.py              # ExposureFeatures, SIFactors
@@ -538,26 +537,25 @@ esh-savings/
 │       │   │                            #   ABSENTEEISM_OT_MULT, FBLR_DEFAULT_USD,
 │       │   │                            #   NCCI_WC_RATE_PER_100
 │       │   └── regulatory.py            # OSHA_*, HSE_POINTS_*, ...
-│       ├── ingestion/
-│       │   ├── detector.py              # auto-detect format from path/magic bytes
-│       │   ├── hdf5_reader.py           # all 5 channel groups → SandingSession
-│       │   ├── mcap_reader.py           # all 5 channel groups → SandingSession
-│       │   ├── rrd_reader.py            # all 5 channel groups → SandingSession
-│       │   └── config.py                # IngestionConfig (topic names, dataset paths)
-│       ├── features/
-│       │   └── extractor.py             # SandingSession → ExposureFeatures
-│       │                                #   (no face segmentation; position not used)
-│       ├── standards/
-│       │   ├── evaluator.py             # evaluate(features, adapter) → RiskScores
-│       │   └── jurisdictions/
-│       │       ├── __init__.py          # registry
-│       │       ├── us.py                # USAdapter
-│       │       ├── eu.py                # EUAdapter
-│       │       └── uk.py                # UKAdapter
-│       ├── cost_calibration/
-│       │   └── calibrator.py            # SEProvidedInputs + RiskScores → CostCalibration
-│       ├── savings/
-│       │   └── calculator.py            # RiskScores + CostCalibration → ESHResult
+│       ├── pipeline/
+│       │   ├── __init__.py              # Pipeline orchestrator class
+│       │   ├── ingestion/
+│       │   │   ├── detector.py          # auto-detect format from path/magic bytes
+│       │   │   ├── hdf5_reader.py       # all 5 channel groups → SandingSession
+│       │   │   ├── mcap_reader.py       # all 5 channel groups → SandingSession
+│       │   │   ├── rrd_reader.py        # all 5 channel groups → SandingSession
+│       │   │   └── config.py            # IngestionConfig (topic names, dataset paths)
+│       │   ├── features.py              # SandingSession → ExposureFeatures
+│       │   │                            #   (no face segmentation; position not used)
+│       │   ├── standards/
+│       │   │   ├── evaluator.py         # evaluate(features, adapter) → RiskScores
+│       │   │   └── jurisdictions/
+│       │   │       ├── __init__.py      # registry
+│       │   │       ├── us.py            # USAdapter
+│       │   │       ├── eu.py            # EUAdapter
+│       │   │       └── uk.py            # UKAdapter
+│       │   ├── cost_calibration.py      # SEProvidedInputs + RiskScores → CostCalibration
+│       │   └── savings.py               # RiskScores + CostCalibration → ESHResult
 │       ├── intelligence/
 │       │   ├── provenance.py            # ProvenanceTag injection
 │       │   ├── calibration.py           # SQLite: constants + customers tables
@@ -658,7 +656,14 @@ class JurisdictionAdapter(Protocol):
     def compliance_flags(self, features: ExposureFeatures) -> dict[str, bool]: ...
 ```
 
-Bundled: `us.py`, `eu.py`, `uk.py`. To add Canada: create `ca.py`, register in `__init__.py`, appears in dashboard dropdown automatically.
+Bundled: `pipeline/standards/jurisdictions/us.py`, `eu.py`, `uk.py`. To add Canada: create `ca.py`, register in `jurisdictions/__init__.py`, appears in dashboard dropdown automatically.
+
+Public import paths:
+```python
+from esh_savings.pipeline import Pipeline
+from esh_savings.pipeline.ingestion import load_session
+from esh_savings.pipeline.standards.jurisdictions.us import USAdapter
+```
 
 ### IngestionConfig Overrides
 
