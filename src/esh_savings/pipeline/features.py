@@ -22,11 +22,13 @@ def _detect_active_mask(accel_xyz: np.ndarray, timestamps: np.ndarray) -> np.nda
     Algorithm: rolling 0.5 s RMS of the vector magnitude; samples above
     20 % of the 95th-percentile rolling RMS are classified as active.
     """
+    if len(timestamps) < 2:
+        return np.ones(len(accel_xyz), dtype=bool)
     dt = float(np.median(np.diff(timestamps)))
     window = max(1, int(0.5 / dt))
-    rms = np.linalg.norm(accel_xyz, axis=1)
+    accel_mag = np.linalg.norm(accel_xyz, axis=1)
     kernel = np.ones(window) / window
-    rolling_rms = np.sqrt(np.convolve(rms ** 2, kernel, mode="same"))
+    rolling_rms = np.sqrt(np.convolve(accel_mag ** 2, kernel, mode="same"))
     threshold = 0.20 * float(np.percentile(rolling_rms, 95))
     return rolling_rms > threshold
 
@@ -61,7 +63,7 @@ def _si_du(duty_cycle: float) -> float:
 
 
 def _si_em(rep_rate: float) -> float:
-    """Efforts-per-minute multiplier (Moore & Garg 1995)."""
+    """Efforts-per-minute multiplier (Moore & Garg 1995 Table 3)."""
     if rep_rate < 4:
         return 0.5
     if rep_rate < 8:
@@ -70,7 +72,9 @@ def _si_em(rep_rate: float) -> float:
         return 1.5
     if rep_rate < 16:
         return 2.0
-    return 3.0
+    if rep_rate < 20:
+        return 3.0
+    return 4.0
 
 
 def extract_features(
@@ -145,7 +149,7 @@ def extract_features(
         # HAL: empirical approximation to ACGIH nomogram (Marley & Kumar 1996)
         hal = min(10.0, 6.56 * duty_cycle)
 
-        pct_mvc = (fz_p50 / SNOOK_PUSH_LIMIT_N * 100.0) if fz_p50 else 0.0
+        pct_mvc = (fz_p50 / SNOOK_PUSH_LIMIT_N * 100.0) if fz_p50 is not None else 0.0
         si_factors = SIFactors(
             im=_si_im(pct_mvc),
             du=_si_du(duty_cycle),

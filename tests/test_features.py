@@ -39,6 +39,8 @@ def test_disabled_channels_produce_none(sample_hdf5_path):
     assert features.a8 is None
     assert features.fz_p50 is None
     assert features.si_factors is None
+    assert features.arm_elevation_deg is None
+    assert features.wrist_pronation_deg is None
 
 
 def test_a8_normalizes_to_shift(sample_hdf5_path):
