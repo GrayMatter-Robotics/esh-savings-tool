@@ -1,3 +1,4 @@
+import pytest
 from esh_savings.pipeline.ingestion import load_session
 from esh_savings.pipeline import Pipeline
 from esh_savings.models.config import AnalysisConfig
@@ -31,13 +32,16 @@ def test_pipeline_risk_scores_in_range(sample_hdf5_path):
 
 def test_pipeline_savings_positive(sample_hdf5_path):
     session = load_session(sample_hdf5_path)
+    from esh_savings.constants.economics import MANUAL_MSD_IR, ROBOT_MSD_IR, TOTAL_CLAIM_COST_USD
     pipeline = Pipeline(
         config=AnalysisConfig(),
         se_inputs=SEProvidedInputs(operator_count=5),
         adapter=USAdapter(),
     )
     result = pipeline.run(session)
-    assert result.annual_esh_savings_usd > 0
+    # savings = n × (manual_ir - robot_ir) / 10_000 × TOTAL_CLAIM_COST_USD
+    expected = 5 * (MANUAL_MSD_IR - ROBOT_MSD_IR) / 10_000.0 * TOTAL_CLAIM_COST_USD
+    assert result.annual_esh_savings_usd == pytest.approx(expected)
 
 
 def test_pipeline_respects_analysis_config(sample_hdf5_path):
@@ -52,7 +56,7 @@ def test_pipeline_respects_analysis_config(sample_hdf5_path):
     assert result.havs_onset_estimate is None
 
 
-def test_pipeline_public_import():
+def test_pipeline_module_is_importable():
     from esh_savings.pipeline import Pipeline
     from esh_savings.pipeline.ingestion import load_session
     from esh_savings.pipeline.standards.jurisdictions.us import USAdapter
