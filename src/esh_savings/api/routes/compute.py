@@ -40,16 +40,22 @@ async def compute_endpoint(body: dict):
     if session_id not in _sessions:
         raise HTTPException(status_code=404, detail="Session not found. Upload a file first.")
 
-    config     = AnalysisConfig(**body.get("analysis_config", {}))
-    se_inputs  = SEProvidedInputs(**body.get("se_inputs", {"operator_count": 1}))
-    adapter    = get_adapter(body.get("jurisdiction", "US"))
+    try:
+        config    = AnalysisConfig(**body.get("analysis_config", {}))
+        se_inputs = SEProvidedInputs(**body.get("se_inputs", {"operator_count": 1}))
+        adapter   = get_adapter(body.get("jurisdiction", "US"))
+        session   = load_session(_sessions[session_id])
+        result    = Pipeline(config, se_inputs, adapter).run(session)
+        result_dict = result_to_dict(result)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Pipeline error: {type(exc).__name__}: {exc}") from exc
 
-    session = load_session(_sessions[session_id])
-    result  = Pipeline(config, se_inputs, adapter).run(session)
     _results[session_id] = result
-    tmp_path = _sessions.pop(session_id)  # remove from session store
-    os.unlink(tmp_path)                    # delete temp file
-    return result_to_dict(result)
+    tmp_path = _sessions.pop(session_id)
+    os.unlink(tmp_path)
+    return result_dict
 
 
 @router.get("/report/{session_id}")

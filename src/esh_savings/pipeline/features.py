@@ -99,6 +99,11 @@ def extract_features(
     ExposureFeatures
         Fields for disabled channels are ``None``.
     """
+    if len(session.timestamps) < 2:
+        raise ValueError(
+            f"Session has only {len(session.timestamps)} sample(s); at least 2 are required. "
+            "Verify HDF5 dataset paths match IngestionConfig defaults."
+        )
     active = _detect_active_mask(session.accel_xyz, session.timestamps)
     dt = float(np.median(np.diff(session.timestamps)))
     t_active_s = float(active.sum()) * dt
